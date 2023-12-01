@@ -1,3 +1,4 @@
+<!-- src/components/UserSearch.vue -->
 <template>
   <div>
     <h1>Search User</h1>
