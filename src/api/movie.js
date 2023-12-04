@@ -21,11 +21,10 @@ export async function getMovies(page) {
                 },
             }
         );
-        if (response.data.error) {
-            throw new Error(response.data.error.message);
-        }
+
+        console.log("API response data:", response.data); // 添加此行以查看 API 返回的数据
         // 确保返回的数据是一个数组
-        return Array.isArray(response.data.result) ? response.data.result : [];
+        return Array.isArray(response.data) ? response.data : [];
     } catch (error) {
         console.error("Error fetching movies:", error);
         throw error;

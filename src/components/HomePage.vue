@@ -3,7 +3,7 @@
   <div>
     <h2>Movies</h2>
     <div class="movies-list">
-      <movie-card v-for="movie in movies" :key="movie.id" :movie="movie" />
+      <movie-card v-for="movie in movies" :key="movie.id" :movie="movie"/>
     </div>
     <!-- 添加滚动事件监听 -->
     <div v-show="isLoading">Loading...</div>
@@ -12,8 +12,8 @@
 
 <script>
 import MovieCard from "./MovieCard.vue";
-import { ref, onMounted, onBeforeUnmount } from "vue";
-import { inject } from "vue";
+import {ref, onMounted, onBeforeUnmount} from "vue";
+import {inject} from "vue";
 
 export default {
   components: {
@@ -24,13 +24,22 @@ export default {
     const movies = ref([]);
     const isLoading = ref(false);
     const pageNum = ref(1);
+    const hasMore = ref(true);
 
     const fetchMovies = async () => {
+      if (!hasMore.value) {
+        return;
+      }
       isLoading.value = true;
       const newMovies = await $api.getMovies(pageNum.value);
-      movies.value = [...movies.value, ...newMovies];
+
+      if (newMovies.length === 0) {
+        hasMore.value = false;
+      } else {
+        movies.value = movies.value.concat(newMovies);
+        pageNum.value++;
+      }
       isLoading.value = false;
-      pageNum.value += 1;
     };
 
     const handleScroll = () => {
