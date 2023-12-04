@@ -42,7 +42,8 @@ export default {
 
 .poster img {
   width: 100%;
-  height: auto;
+  height: 250px; /* 修改这里，设置一个固定的高度 */
+  object-fit: cover; /* 添加这个属性，使图片保持原始比例并填充容器 */
   border-radius: 4px;
 }
 
