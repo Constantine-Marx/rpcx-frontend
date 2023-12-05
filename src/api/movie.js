@@ -53,3 +53,30 @@ export async function getMovieById(movieId) {
     return await response.json();
 }
 
+export async function getMovieSchedule(movieId, cinemaName, scheduleTime) {
+    try {
+        const response = await axios.post(
+            "http://localhost:9981/MovieScheduleService",
+            {
+                movie_id: movieId,
+                cinema_name: cinemaName,   // 添加这个字段
+                schedule_time: scheduleTime // 添加这个字段
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-RPCX-Version": "1.8.21",
+                    "X-RPCX-MessageType": "0",
+                    "X-RPCX-SerializeType": "1",
+                    "X-RPCX-ServicePath": "MovieScheduleService",
+                    "X-RPCX-ServiceMethod": "GetMovieSchedule",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching movie schedule:", error);
+        throw error;
+    }
+}
+
