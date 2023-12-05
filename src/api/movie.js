@@ -30,3 +30,26 @@ export async function getMovies(page) {
         throw error;
     }
 }
+
+// src/api/movie.js
+export async function getMovieById(movieId) {
+    const response = await fetch(`http://localhost:9981/MovieService`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-RPCX-Version": "1.8.21",
+            "X-RPCX-MessageType": "0",
+            "X-RPCX-SerializeType": "1",
+            "X-RPCX-ServicePath": "MovieService",
+            "X-RPCX-ServiceMethod": "GetMovieByID",
+        },
+        body: JSON.stringify({ ID: movieId }),
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch movie.");
+    }
+
+    return await response.json();
+}
+

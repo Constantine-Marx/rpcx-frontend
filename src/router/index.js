@@ -4,6 +4,7 @@ import HomePage from "@/components/HomePage.vue";
 import UserSearch from "@/components/UserSearch.vue";
 import Login from "@/components/LoginPage.vue";
 import Register from "@/components/RegisterPage.vue";
+import PurchasePage from "@/components/PurchasePage.vue";
 
 const routes = [
     {
@@ -30,6 +31,13 @@ const routes = [
         name: "Register",
         component: Register,
     },
+    {
+        path: "/purchase/:movieId",
+        name: "purchase",
+        component: PurchasePage,
+        props: true,
+    },
+
 ];
 
 const router = createRouter({

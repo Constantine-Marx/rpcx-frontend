@@ -11,6 +11,7 @@
       <p>Genre: {{ movie.genre }}</p>
       <p>IMDb Rating: {{ movie.imdb_rating }}</p>
       <p>Douban Rating: {{ movie.douban_rating }}</p>
+      <button @click="goToPurchase">Purchase Tickets</button>
     </div>
   </div>
 </template>
@@ -21,6 +22,11 @@ export default {
     movie: {
       type: Object,
       required: true,
+    },
+  },
+  methods: {
+    goToPurchase() {
+      this.$router.push({ name: "purchase", params: { movieId: this.movie.id } });
     },
   },
 };
@@ -42,7 +48,7 @@ export default {
 
 .poster img {
   width: 100%;
-  height: 250px; /* 修改这里，设置一个固定的高度 */
+  height: auto; /* 修改这里，设置一个固定的高度 */
   object-fit: cover; /* 添加这个属性，使图片保持原始比例并填充容器 */
   border-radius: 4px;
 }

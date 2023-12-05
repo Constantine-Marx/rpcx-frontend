@@ -1,13 +1,11 @@
 // src/main.js
-import {createApp} from "vue";
+import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
-import * as api from "./api/movie";
-import store from "./store"; // 导入 store
+import * as api from "./api/movie"; // 确保您已正确导入 api/movie.js 文件
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.provide("$api", api);
+app.provide("$api", api); // 将 $api 对象提供给应用程序
 app.use(router);
-app.use(store)
 app.mount("#app");
