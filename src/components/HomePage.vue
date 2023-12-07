@@ -44,7 +44,8 @@ export default {
 
     const handleScroll = () => {
       const scrollTop =
-          document.documentElement.scrollTop || document.body.scrollTop;
+          document.documentElement.scrollTop
+          || document.body.scrollTop;
       const windowHeight = document.documentElement.clientHeight;
       const scrollHeight = document.documentElement.scrollHeight;
       if (scrollHeight - scrollTop - windowHeight < 50) {

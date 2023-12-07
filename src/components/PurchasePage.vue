@@ -15,9 +15,23 @@
         <p>Country: {{ movie.country }}</p>
         <p>Description: {{ movie.description }}</p>
       </div>
+
       <div class="seats-section">
         <div>
-          <label for="schedule">Schedule:</label>
+          <label for="schedule_date">日期:</label>
+          <select id="schedule_date" v-model="selectedSchedule">
+            <option
+                v-for="schedule in movieSchedules"
+                :key="schedule.id"
+                :value="schedule"
+            >
+              {{ schedule.schedule_date }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="schedule">时间:</label>
           <select id="schedule" v-model="selectedSchedule">
             <option
                 v-for="schedule in movieSchedules"
@@ -28,7 +42,6 @@
             </option>
           </select>
         </div>
-
         <div>
           <label for="city">City:</label>
           <select id="city" v-model="selectedCity" @change="fetchMovieSchedules">
@@ -98,11 +111,6 @@ export default {
           id
       ); // 获取电影场次
 
-      // 将 seats 字段转换为二维数组
-      for (let schedule of movieSchedules.value) {
-        schedule.seats = JSON.parse(schedule.seats);
-      }
-
       loading.value = false;
     };
 
@@ -116,6 +124,7 @@ export default {
       // After successfully creating the order, navigate back to the home page or another appropriate page
       router.push({ name: "home" });
     };
+
 
     return {
       movie,
