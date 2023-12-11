@@ -43,7 +43,7 @@ export async function getMovieById(movieId) {
             "X-RPCX-ServicePath": "MovieService",
             "X-RPCX-ServiceMethod": "GetMovieByID",
         },
-        body: JSON.stringify({ ID: movieId }),
+        body: JSON.stringify({ID: movieId}),
     });
 
     if (!response.ok) {
@@ -77,4 +77,23 @@ export async function getMovieSchedule(movieId) {
         throw error;
     }
 }
+export async function getMovieSeats(id) {
+    const response = await fetch(`http://localhost:9981/MovieScheduleService?id=${id}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-RPCX-Version": "1.8.21",
+            "X-RPCX-MessageType": "0",
+            "X-RPCX-SerializeType": "1",
+            "X-RPCX-ServicePath": "MovieScheduleService",
+            "X-RPCX-ServiceMethod": "GetMovieSeats",
+        },
+    });
+    if (!response.ok) {
+        throw new Error(`Failed to fetch movie seats: ${response.statusText}`);
+    }
+    return await response.json();
+}
+
+
 

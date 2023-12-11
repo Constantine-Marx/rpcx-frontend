@@ -1,4 +1,3 @@
-<!-- src/components/PurchasePage.vue -->
 <template>
   <div>
     <h1 v-if="movie">Purchase Tickets for {{ movie.name }}</h1>
@@ -19,13 +18,43 @@
       <div class="seats-section">
         <div>
           <label for="schedule_date">日期:</label>
-          <select id="schedule_date" v-model="selectedSchedule">
+          <select
+              id="schedule_date"
+              v-model="selectedDate"
+              @change="updateAvailableCinemas"
+          >
             <option
-                v-for="schedule in movieSchedules"
-                :key="schedule.id"
-                :value="schedule"
+                v-for="date in uniqueScheduleDates"
+                :key="date"
+                :value="date"
             >
-              {{ schedule.schedule_date }}
+              {{ date }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="city">City:</label>
+          <select id="city" v-model="selectedCity" @change="updateAvailableCinemas">
+            <option
+                v-for="city in uniqueCities"
+                :key="city"
+                :value="city"
+            >
+              {{ city }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="cinema">Cinema:</label>
+          <select
+              id="cinema"
+              v-model="selectedCinema"
+              @change="updateAvailableTimes"
+          >
+            <option v-for="cinema in uniqueCinemas" :key="cinema" :value="cinema">
+              {{ cinema }}
             </option>
           </select>
         </div>
@@ -34,61 +63,31 @@
           <label for="schedule">时间:</label>
           <select id="schedule" v-model="selectedSchedule">
             <option
-                v-for="schedule in movieSchedules"
-                :key="schedule.id"
-                :value="schedule"
+                v-for="time in availableTimes"
+                :key="time"
+                :value="time"
             >
-              {{ schedule.schedule_time }}
+              {{ time }}
             </option>
           </select>
         </div>
-        <div>
-          <label for="city">City:</label>
-          <select id="city" v-model="selectedCity" @change="fetchMovieSchedules">
-            <option v-for="city in cities" :key="city" :value="city">
-              {{ city }}
-            </option>
-          </select>
-        </div>
+        <!-- ... -->
+        <button
+            v-if="selectedDate && selectedCity && selectedCinema && selectedSchedule"
+            @click="fetchMovieSeats"
+        >
+          确认选择
+        </button>
 
-        <div>
-          <label for="cinema">Cinema:</label>
-          <select id="cinema" v-model="selectedCinema" @change="fetchMovieSchedules">
-            <option v-for="cinema in cinemas" :key="cinema" :value="cinema">
-              {{ cinema }}
-            </option>
-          </select>
-        </div>
-          <div class="seats-layout" v-if="selectedSchedule">
-          <div class="screen">银幕</div>
-          <div
-              v-for="(row, rowIndex) in selectedSchedule.seats"
-              :key="rowIndex"
-              class="row"
-          >
-            <div
-                v-for="(seat, seatIndex) in row"
-                :key="seatIndex"
-                :class="['seat', seat === 1 ? 'occupied' : '']"
-            >
-              {{ rowIndex + 1 }}{{ String.fromCharCode(seatIndex + 65) }}
-            </div>
-          </div>
-        </div>
-        <div>
-          <label for="seatNumber">Seat Number:</label>
-          <input type="number" id="seatNumber" v-model="seatNumber" />
-        </div>
-        <button @click="purchaseTickets">Purchase Tickets</button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { inject } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 export default {
   props: ["movieId"],
@@ -98,18 +97,18 @@ export default {
     const route = useRoute();
 
     const movie = ref(null);
-    const movieSchedules = ref([]); // 添加 movieSchedules 变量
+    const movieSchedules = ref([]);
     const loading = ref(true);
+    const selectedDate = ref(null);
+    const selectedCity = ref(null);
+    const selectedCinema = ref(null);
     const selectedSchedule = ref(null);
     const seatNumber = ref(1);
 
     const fetchMovie = async () => {
       const id = parseInt(route.params.movieId);
-      console.log(id);
       movie.value = await $api.getMovieById(id);
-      movieSchedules.value = await $api.getMovieSchedule(
-          id
-      ); // 获取电影场次
+      movieSchedules.value = await $api.getMovieSchedule(id);
 
       loading.value = false;
     };
@@ -119,20 +118,93 @@ export default {
     });
 
     const purchaseTickets = async () => {
-      // Call your API to create an order here
-      // Use `selectedSchedule.value` and `seatNumber.value` to create the order
-      // After successfully creating the order, navigate back to the home page or another appropriate page
       router.push({ name: "home" });
     };
 
+    const uniqueScheduleDates = computed(() => {
+      const dates = new Set();
+      movieSchedules.value.forEach(schedule =>
+          dates.add(schedule.schedule_date)
+      );
+      return Array.from(dates);
+    });
+
+    const uniqueCities = computed(() => {
+      const cities = new Set();
+      movieSchedules.value.forEach(schedule => cities.add(schedule.city));
+      return Array.from(cities);
+    });
+
+    const uniqueCinemas = computed(() => {
+      if (!selectedCity.value || !selectedDate.value) return [];
+      return Array.from(
+          new Set(
+              movieSchedules.value
+                  .filter(
+                      schedule =>
+                          schedule.city === selectedCity.value &&
+                          schedule.schedule_date === selectedDate.value
+                  )
+                  .map(schedule => schedule.cinema_name)
+          )
+      );
+    });
+
+    const availableTimes = computed(() => {
+      if (!selectedDate.value || !selectedCity.value || !selectedCinema.value)
+        return [];
+      return movieSchedules.value
+          .filter(
+              schedule =>
+                  schedule.schedule_date === selectedDate.value &&
+                  schedule.city === selectedCity.value &&
+                  schedule.cinema_name === selectedCinema.value
+          )
+          .map(schedule => schedule.schedule_time);
+    });
+
+    const updateAvailableCinemas = () => {
+      selectedCinema.value = uniqueCinemas.value[0];
+      updateAvailableTimes();
+    };
+    const fetchMovieSeats = async () => {
+      const selectedId = movieSchedules.value.find(
+          (schedule) =>
+              schedule.schedule_date === selectedDate.value &&
+              schedule.city === selectedCity.value &&
+              schedule.cinema_name === selectedCinema.value &&
+              schedule.schedule_time === selectedSchedule.value
+      ).id;
+      const seats = await $api.getMovieSeats(selectedId);
+      console.log(seats);
+    };
+
+    const updateAvailableTimes = () => {
+      selectedSchedule.value = movieSchedules.value.find(
+          schedule =>
+              schedule.schedule_date === selectedDate.value &&
+              schedule.city === selectedCity.value &&
+              schedule.cinema_name === selectedCinema.value
+      );
+    };
 
     return {
       movie,
       movieSchedules,
       loading,
+      selectedDate,
+      selectedCity,
+      selectedCinema,
       selectedSchedule,
       seatNumber,
       purchaseTickets,
+      uniqueScheduleDates,
+      uniqueCities,
+      uniqueCinemas,
+      availableTimes,
+      updateAvailableCinemas,
+      updateAvailableTimes,
+      fetchMovieSeats,
     };
   },
 };
