@@ -78,22 +78,51 @@ export async function getMovieSchedule(movieId) {
     }
 }
 export async function getMovieSeats(id) {
-    const response = await fetch(`http://localhost:9981/MovieScheduleService?id=${id}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-RPCX-Version": "1.8.21",
-            "X-RPCX-MessageType": "0",
-            "X-RPCX-SerializeType": "1",
-            "X-RPCX-ServicePath": "MovieScheduleService",
-            "X-RPCX-ServiceMethod": "GetMovieSeats",
-        },
-    });
-    if (!response.ok) {
-        throw new Error(`Failed to fetch movie seats: ${response.statusText}`);
+    try {
+        const response = await axios.post(
+            "http://localhost:9981/MovieScheduleService",
+            {
+                id: id,
+            },
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-RPCX-Version": "1.8.21",
+                    "X-RPCX-MessageType": "0",
+                    "X-RPCX-SerializeType": "1",
+                    "X-RPCX-ServicePath": "MovieScheduleService",
+                    "X-RPCX-ServiceMethod": "GetMovieSeats",
+                },
+            }
+        );
+        return response.data;
+    } catch (error) {
+        console.error("Error fetching movie schedule:", error);
+        throw error;
     }
-    return await response.json();
 }
 
+export async function createOrder(data) {
+    try {
+        const response = await axios.post(
+            "http://localhost:9981/OrderService",
+            data,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-RPCX-Version": "1.8.21",
+                    "X-RPCX-MessageType": "0",
+                    "X-RPCX-SerializeType": "1",
+                    "X-RPCX-ServicePath": "OrderService",
+                    "X-RPCX-ServiceMethod": "CreateOrder",
+                },
+            }
+        );
+        return response.status;
+    } catch (error) {
+        console.error("Error fetching movie schedule:", error);
+        throw error;
+    }
+}
 
 

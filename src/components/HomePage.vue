@@ -2,7 +2,7 @@
 <template>
   <div>
     <h2>Movies</h2>
-    <div class="movies-list">
+    <div class="movies-list" >
       <movie-card v-for="movie in movies" :key="movie.id" :movie="movie"/>
     </div>
     <!-- 添加滚动事件监听 -->
@@ -69,3 +69,9 @@ export default {
   },
 };
 </script>
+
+<style>
+.movies-list {
+  max-width: 60%;
+}
+</style>

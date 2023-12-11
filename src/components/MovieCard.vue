@@ -42,8 +42,9 @@ export default {
 }
 
 .poster {
-  width: 30%;
-  margin-right: 1rem;
+  flex: 1;
+  margin-right: 2rem;
+  max-width: 200px; /* 您可以根据需要调整此值 */
 }
 
 .poster img {

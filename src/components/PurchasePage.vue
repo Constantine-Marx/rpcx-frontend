@@ -4,7 +4,9 @@
     <div v-if="loading">Loading movie information...</div>
     <div v-else class="container">
       <div class="movie-details">
-        <img :src="movie.poster" alt="Movie poster" />
+        <div class="card">
+          <img :src="movie.poster" alt="Movie poster"/>
+        </div>
         <p>Original Name: {{ movie.original_name }}</p>
         <p>Year: {{ movie.year }}</p>
         <p>Genre: {{ movie.genre }}</p>
@@ -14,7 +16,6 @@
         <p>Country: {{ movie.country }}</p>
         <p>Description: {{ movie.description }}</p>
       </div>
-
       <div class="seats-section">
         <div>
           <label for="schedule_date">日期:</label>
@@ -71,7 +72,7 @@
             </option>
           </select>
         </div>
-        <!-- ... -->
+
         <button
             v-if="selectedDate && selectedCity && selectedCinema && selectedSchedule"
             @click="fetchMovieSeats"
@@ -79,15 +80,40 @@
           确认选择
         </button>
 
+        <div class="seats-layout" v-if="seats && seats.length">
+
+          <div class="screen">屏幕</div>
+          <div class="row" v-for="(row, rowIndex) in seats" :key="rowIndex">
+            <div
+                class="seat"
+                :class="{ occupied: seat === 1, selected: isSelectedSeat(rowIndex, seatIndex) }"
+                v-for="(seat, seatIndex) in row"
+                :key="seatIndex"
+                @click="toggleSeatSelection(rowIndex, seatIndex)"
+            >
+              {{ `${indexToLetter(rowIndex)}${seatIndex + 1}` }}
+            </div>
+          </div>
+        </div>
+
+        <button
+            v-if="selectedDate && selectedCity && selectedCinema && selectedSchedule"
+            @click="purchaseTickets"
+        >
+          确认购买
+        </button>
+
       </div>
+
     </div>
   </div>
 </template>
 
 <script>
-import { useRouter, useRoute } from "vue-router";
-import { inject } from "vue";
-import { ref, onMounted, computed } from "vue";
+import {useRouter, useRoute} from "vue-router";
+import {inject} from "vue";
+import {ref, onMounted, computed} from "vue";
+import {createOrder} from "@/api/movie";
 
 export default {
   props: ["movieId"],
@@ -104,6 +130,10 @@ export default {
     const selectedCinema = ref(null);
     const selectedSchedule = ref(null);
     const seatNumber = ref(1);
+    const seats = ref([]);
+    const selectedSeats = ref([]);
+    const orderStatus = ref(null);
+
 
     const fetchMovie = async () => {
       const id = parseInt(route.params.movieId);
@@ -118,8 +148,42 @@ export default {
     });
 
     const purchaseTickets = async () => {
-      router.push({ name: "home" });
+      const user_id = localStorage.getItem("user_id");
+      const movie_id = parseInt(route.params.movieId);
+      const schedule_id = movieSchedules.value.find(
+          (schedule) =>
+              schedule.schedule_date === selectedDate.value &&
+              schedule.city === selectedCity.value &&
+              schedule.cinema_name === selectedCinema.value &&
+              schedule.schedule_time === selectedSchedule.value
+      ).id;
+      const seat_number = selectedSeats.value.length;
+      const seat_row = selectedSeats.value.map(seat => seat.split("-")[0]);
+      const seat_column = selectedSeats.value.map(seat => seat.split("-")[1]);
+      const price = 50 * seat_number;
+      const data = {
+        user_id,
+        movie_id,
+        schedule_id,
+        seat_number,
+        seat_row,
+        seat_column,
+        price,
+      };
+
+      // 调用 createOrder API 并传递订单数据
+      const response = await createOrder(data);
+      orderStatus.value = response.status;
+      const orderNumber = response.data.OrderNumber;
+
+      if (orderStatus.value === 200) {
+        alert(`购票成功，订单号：${orderNumber}`);
+        await router.push("/home");
+      } else {
+        alert("购票失败");
+      }
     };
+
 
     const uniqueScheduleDates = computed(() => {
       const dates = new Set();
@@ -128,6 +192,11 @@ export default {
       );
       return Array.from(dates);
     });
+
+    const indexToLetter = (index) => {
+      return String.fromCharCode(65 + index);
+    };
+
 
     const uniqueCities = computed(() => {
       const cities = new Set();
@@ -167,6 +236,7 @@ export default {
       selectedCinema.value = uniqueCinemas.value[0];
       updateAvailableTimes();
     };
+
     const fetchMovieSeats = async () => {
       const selectedId = movieSchedules.value.find(
           (schedule) =>
@@ -175,8 +245,8 @@ export default {
               schedule.cinema_name === selectedCinema.value &&
               schedule.schedule_time === selectedSchedule.value
       ).id;
-      const seats = await $api.getMovieSeats(selectedId);
-      console.log(seats);
+      seats.value = await $api.getMovieSeats(selectedId);
+      console.log("Seats data:", seats.value);
     };
 
     const updateAvailableTimes = () => {
@@ -187,6 +257,24 @@ export default {
               schedule.cinema_name === selectedCinema.value
       );
     };
+
+    const toggleSeatSelection = (rowIndex, seatIndex) => {
+      const seatCoordinates = `${rowIndex}-${seatIndex}`;
+
+      if (selectedSeats.value.includes(seatCoordinates)) {
+        selectedSeats.value = selectedSeats.value.filter(
+            (seat) => seat !== seatCoordinates
+        );
+      } else {
+        selectedSeats.value.push(seatCoordinates);
+      }
+    };
+
+    const isSelectedSeat = (rowIndex, seatIndex) => {
+      const seatCoordinates = `${rowIndex}-${seatIndex}`;
+      return selectedSeats.value.includes(seatCoordinates);
+    };
+
 
     return {
       movie,
@@ -203,8 +291,13 @@ export default {
       uniqueCinemas,
       availableTimes,
       updateAvailableCinemas,
+      indexToLetter,
       updateAvailableTimes,
       fetchMovieSeats,
+      seats,
+      selectedSeats,
+      toggleSeatSelection,
+      isSelectedSeat,
     };
   },
 };
@@ -214,6 +307,13 @@ export default {
 .container {
   display: flex;
 }
+
+.card {
+  flex: 1;
+  margin-right: 2rem;
+  max-width: 200px; /* 您可以根据需要调整此值 */
+}
+
 
 .movie-details {
   flex: 1;
@@ -266,4 +366,10 @@ export default {
 .seat.occupied {
   background-color: #f00;
 }
+
+.seat.selected {
+  background-color: #0f0;
+}
+
+
 </style>
