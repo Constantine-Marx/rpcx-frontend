@@ -1,3 +1,4 @@
+<!--src/components/PurchasePage.vue-->
 <template>
   <div>
     <h1 v-if="movie">Purchase Tickets for {{ movie.name }}</h1>
@@ -135,6 +136,8 @@ export default {
     const orderStatus = ref(null);
 
 
+
+
     const fetchMovie = async () => {
       const id = parseInt(route.params.movieId);
       movie.value = await $api.getMovieById(id);
@@ -158,9 +161,13 @@ export default {
               schedule.schedule_time === selectedSchedule.value
       ).id;
       const seat_number = selectedSeats.value.length;
-      const seat_row = selectedSeats.value.map(seat => seat.split("-")[0]);
-      const seat_column = selectedSeats.value.map(seat => seat.split("-")[1]);
       const price = 50 * seat_number;
+      const seatCoordinates = selectedSeats.value.map(seat => seatToCoordinates(seat));
+
+      const seat_row = seatCoordinates.map(coord => coord[0]);
+      const seat_column = seatCoordinates.map(coord => coord[1]);
+      console.log("Seat Row:", seat_row);
+      console.log("Seat Column:", seat_column);
       const data = {
         user_id,
         movie_id,
@@ -170,11 +177,14 @@ export default {
         seat_column,
         price,
       };
-
+      console.log("Seat Coordinates:", seatCoordinates);
+      console.log("Seat Row:", seat_row);
+      console.log("Seat Column:", seat_column);
       // 调用 createOrder API 并传递订单数据
       const response = await createOrder(data);
       orderStatus.value = response.status;
-      const orderNumber = response.data.OrderNumber;
+
+      const orderNumber = response.data?.OrderNumber;
 
       if (orderStatus.value === 200) {
         alert(`购票成功，订单号：${orderNumber}`);
@@ -275,6 +285,11 @@ export default {
       return selectedSeats.value.includes(seatCoordinates);
     };
 
+    function seatToCoordinates(seat) {
+      const [row, column] = seat.split("-");
+      return [parseInt(row), parseInt(column)];
+    }
+
 
     return {
       movie,
@@ -285,19 +300,20 @@ export default {
       selectedCinema,
       selectedSchedule,
       seatNumber,
-      purchaseTickets,
       uniqueScheduleDates,
       uniqueCities,
       uniqueCinemas,
       availableTimes,
+      seats,
+      selectedSeats,
+      orderStatus,
+      purchaseTickets,
       updateAvailableCinemas,
       indexToLetter,
       updateAvailableTimes,
       fetchMovieSeats,
-      seats,
-      selectedSeats,
-      toggleSeatSelection,
       isSelectedSeat,
+      toggleSeatSelection,
     };
   },
 };

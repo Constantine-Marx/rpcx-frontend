@@ -118,7 +118,8 @@ export async function createOrder(data) {
                 },
             }
         );
-        return response.status;
+        console.log(response);
+        return response;
     } catch (error) {
         console.error("Error fetching movie schedule:", error);
         throw error;

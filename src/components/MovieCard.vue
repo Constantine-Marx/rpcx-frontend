@@ -6,11 +6,11 @@
     </div>
     <div class="info">
       <h3>{{ movie.name }}</h3>
-      <p>Original Name: {{ movie.original_name }}</p>
-      <p>Year: {{ movie.year }}</p>
-      <p>Genre: {{ movie.genre }}</p>
-      <p>IMDb Rating: {{ movie.imdb_rating }}</p>
-      <p>Douban Rating: {{ movie.douban_rating }}</p>
+      <p>原名: {{ movie.original_name }}</p>
+      <p>上映日期: {{ movie.year }}</p>
+      <p>类型: {{ movie.genre }}</p>
+      <p>IMDb评分: {{ movie.imdb_rating }}</p>
+      <p>豆瓣评分: {{ movie.douban_rating }}</p>
       <button @click="goToPurchase">Purchase Tickets</button>
     </div>
   </div>
