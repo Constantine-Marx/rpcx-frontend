@@ -9,7 +9,7 @@ import PurchasePage from "@/components/PurchasePage.vue";
 const routes = [
     {
         path: "/",
-        redirect: "/home",
+        redirect: "/login",
     },
     {
         path: "/home",

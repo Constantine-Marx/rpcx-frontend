@@ -166,20 +166,15 @@ export default {
 
       const seat_row = seatCoordinates.map(coord => coord[0]);
       const seat_column = seatCoordinates.map(coord => coord[1]);
-      console.log("Seat Row:", seat_row);
-      console.log("Seat Column:", seat_column);
       const data = {
         user_id,
         movie_id,
         schedule_id,
         seat_number,
-        seat_row,
-        seat_column,
+        seat_row: seat_row[0],
+        seat_column: seat_column[0],
         price,
       };
-      console.log("Seat Coordinates:", seatCoordinates);
-      console.log("Seat Row:", seat_row);
-      console.log("Seat Column:", seat_column);
       // 调用 createOrder API 并传递订单数据
       const response = await createOrder(data);
       orderStatus.value = response.status;
@@ -269,6 +264,11 @@ export default {
     };
 
     const toggleSeatSelection = (rowIndex, seatIndex) => {
+      // 如果座位已被占用（红色方框），则不执行任何操作
+      if (seats.value[rowIndex][seatIndex] === 1) {
+        return;
+      }
+
       const seatCoordinates = `${rowIndex}-${seatIndex}`;
 
       if (selectedSeats.value.includes(seatCoordinates)) {
@@ -279,6 +279,7 @@ export default {
         selectedSeats.value.push(seatCoordinates);
       }
     };
+
 
     const isSelectedSeat = (rowIndex, seatIndex) => {
       const seatCoordinates = `${rowIndex}-${seatIndex}`;
